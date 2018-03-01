@@ -1,14 +1,21 @@
 import pip
+pip.main(['install','tweepy'])
 pip.main(['install','requests'])
+import tweepy
 import requests
-import time
-import random
+from tweepy import *
 
-sports_points = []
-entertainment_points = []
-
+CONSUMER_KEY = 'j8WuV98aFQgnwr6zfrVfTxTJy'
+CONSUMER_SECRET = 'eAApX62NWp0I0ppC3uAzsaGFFfqOTDZifKvlx0HMtPzzLcwV4i'
+ACCESS_KEY = '956010179769839621-TcLGJVwi8d1J6p0IUdW4bGruse9re9w'
+ACCESS_SECRET = 'xQvXqMPyXEq85tNIIa8ijv7EVwAQ7BEfskYMBU5jyeHGZ'
+auth = OAuthHandler(CONSUMER_KEY,CONSUMER_SECRET)
+api = tweepy.API(auth)
+auth.set_access_token(ACCESS_KEY, ACCESS_SECRET)
 url = "http://127.0.0.1:5002/putLocations"
 headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
+
+sports_points = [] ; entertainment_points = []
 
 def clearMap():
     global sports_points ; global entertainment_points
@@ -16,20 +23,30 @@ def clearMap():
     data = {'sports': sports_points, 'entertainment': entertainment_points}
     r = requests.put(url, data=json.dumps(data), headers=headers)
     
-clearMap()
-for i in range(1, 100):
-    time.sleep(0.5)
-    poslat = round(random.randint(0,10) / 10, 2)
-    poslong = round(random.randint(0,10) / 10, 2)
-    sports_points.append({"lat": 41.2 + poslat, "lng": -86.74 + poslong})
-
-    #sports_points = [{"lat": 42.702496, "lng": -86.239694},                         
-    #{"lat": 41.712496, "lng": -86.249694}]
-    
+def gatherPoints(status):
+    lng = status.coordinates.get('coordinates')[0]
+    lat = status.coordinates.get('coordinates')[1]
+    sports_points.append({"lat": lat, "lng": lng})
     data = {'sports': sports_points, 'entertainment': entertainment_points}
-    r = requests.put(url, data=json.dumps(data), headers=headers)
-    
+    return data
 
+class MyStreamListener(StreamListener):
+    def __init__(self, api=None):
+        super(MyStreamListener, self).__init__()
+        self.num_tweets = 0
     
-    
+    def on_status(self, status):
+        if (status.coordinates is not None):
+            self.num_tweets += 1
+            #print("found tweet")
+            data = gatherPoints(status)
+            r = requests.put(url, data=json.dumps(data), headers=headers)
+        if self.num_tweets > 100:
+            return False
+        return True
+
+clearMap()
+myGeoStream = tweepy.Stream(auth = api.auth, listener=MyStreamListener())
+myGeoStream.filter(follow=None, locations=[-125,26,-69,47])
+
     
