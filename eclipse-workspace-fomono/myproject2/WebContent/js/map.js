@@ -4,7 +4,7 @@
 
 		function initMap() {
 			map = new google.maps.Map(document.getElementById('map'), {
-				zoom : 13,
+				zoom : 5,
 				center : {
 					lat : 41.702496,
 					lng : -86.239694
@@ -12,12 +12,12 @@
 				mapTypeId : 'satellite'
 			});
 			
-			heatmap = new google.maps.visualization.HeatmapLayer({
-				data : getPoints(),
-				map : map
-			});
-			
-			updateMap();
+//			heatmap = new google.maps.visualization.HeatmapLayer({
+//				data : getPoints(),
+//				map : map
+//			});
+//			
+			//updateMap();
 		}
 
 		function toggleHeatmap() {
